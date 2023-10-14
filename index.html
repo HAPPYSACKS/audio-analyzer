@@ -35,6 +35,23 @@
       .date {
         font-size: 20px;
         color: white;
+        margin-bottom: 30px;
+      }
+
+      .prompt {
+        font-size: 30px;
+        color: white;
+        text-align: center;
+        padding: 20px;
+        border-radius: 5px;
+        background-color: rgba(
+          0,
+          0,
+          0,
+          0.4
+        ); /* semi-transparent background for better readability */
+        #mic {
+        }
       }
     </style>
   </head>
@@ -42,6 +59,92 @@
     <div class="lock-screen">
       <div class="time">11:39</div>
       <div class="date">Monday, September 12</div>
+      <div class="prompt" id="randomPrompt"></div>
+      <button id="recordButton">Start Recording</button>
+      <svg
+        id="mic"
+        fill="#ffffff"
+        height="200px"
+        width="200px"
+        version="1.1"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 512 512"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        enable-background="new 0 0 512 512"
+      >
+        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+        <g
+          id="SVGRepo_tracerCarrier"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></g>
+        <g id="SVGRepo_iconCarrier">
+          <g>
+            <g>
+              <path
+                d="m439.5,236c0-11.3-9.1-20.4-20.4-20.4s-20.4,9.1-20.4,20.4c0,70-64,126.9-142.7,126.9-78.7,0-142.7-56.9-142.7-126.9 0-11.3-9.1-20.4-20.4-20.4s-20.4,9.1-20.4,20.4c0,86.2 71.5,157.4 163.1,166.7v57.5h-23.6c-11.3,0-20.4,9.1-20.4,20.4 0,11.3 9.1,20.4 20.4,20.4h88c11.3,0 20.4-9.1 20.4-20.4 0-11.3-9.1-20.4-20.4-20.4h-23.6v-57.5c91.6-9.3 163.1-80.5 163.1-166.7z"
+              ></path>
+              <path
+                d="m256,323.5c51,0 92.3-41.3 92.3-92.3v-127.9c0-51-41.3-92.3-92.3-92.3s-92.3,41.3-92.3,92.3v127.9c0,51 41.3,92.3 92.3,92.3zm-52.3-220.2c0-28.8 23.5-52.3 52.3-52.3s52.3,23.5 52.3,52.3v127.9c0,28.8-23.5,52.3-52.3,52.3s-52.3-23.5-52.3-52.3v-127.9z"
+              ></path>
+            </g>
+          </g>
+        </g>
+      </svg>
     </div>
+
+    <script>
+      window.onload = function () {
+        const prompts = [
+          "Talk about your favorite childhood memory.",
+          "Describe the last movie you watched.",
+          "What's your dream vacation destination?",
+          "How do you feel about pineapples on pizza?",
+          "Who is your role model and why?",
+          "What book have you read recently?",
+          "Tell about a unique talent you have.",
+        ];
+
+        const randomIndex = Math.floor(Math.random() * prompts.length);
+        const selectedPrompt = prompts[randomIndex];
+
+        document.getElementById("randomPrompt").textContent = selectedPrompt;
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
+
+        document
+          .getElementById("recordButton")
+          .addEventListener("click", function () {
+            if (
+              typeof mediaRecorder === "undefined" ||
+              mediaRecorder.state === "inactive"
+            ) {
+              navigator.mediaDevices
+                .getUserMedia({ audio: true })
+                .then((stream) => {
+                  mediaRecorder = new MediaRecorder(stream);
+                  mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                  };
+
+                  mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+                    audioChunks = []; // Clear chunks for next recording
+                  };
+
+                  mediaRecorder.start();
+                  this.textContent = "Stop Recording";
+                })
+                .catch((error) => {
+                  console.error("Error accessing the microphone.", error);
+                });
+            } else if (mediaRecorder.state === "recording") {
+              mediaRecorder.stop();
+              this.textContent = "Start Recording";
+            }
+          });
+      };
+    </script>
   </body>
 </html>
