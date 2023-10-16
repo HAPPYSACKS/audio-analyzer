@@ -31,6 +31,21 @@
         color: white;
         margin-bottom: 10px;
       }
+      #transcribedText {
+        font-size: 24px;
+        color: white;
+        background-color: rgba(
+          0,
+          0,
+          0,
+          0.7
+        ); /* semi-transparent background for better readability */
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 20px;
+        max-width: 90%; /* prevent overflow */
+        text-align: center;
+      }
 
       .date {
         font-size: 20px;
@@ -61,7 +76,7 @@
       <div class="date">Monday, September 12</div>
       <div class="prompt" id="randomPrompt"></div>
       <button id="recordButton">Start Recording</button>
-      <svg
+      <!-- <svg
         id="mic"
         fill="#ffffff"
         height="200px"
@@ -90,10 +105,43 @@
             </g>
           </g>
         </g>
-      </svg>
+      </svg> -->
+
+      <div id="transcribedText"></div>
     </div>
 
     <script>
+      const recognition = new (window.SpeechRecognition ||
+        window.webkitSpeechRecognition)();
+      recognition.lang = "en-US";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.onresult = function (event) {
+        let transcript = event.results[0][0].transcript;
+        console.log(transcript);
+        document.getElementById("transcribedText").textContent = transcript;
+      };
+
+      let stream;
+      let mediaRecorder;
+      let audioChunks = [];
+      let audioBlob;
+
+      function initiateRecording(str) {
+        mediaRecorder = new MediaRecorder(str);
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+        mediaRecorder.onstop = () => {
+          audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+          audioChunks = [];
+          str.getTracks().forEach((track) => track.stop());
+          recognition.start();
+        };
+        mediaRecorder.start();
+        document.getElementById("recordButton").textContent = "Stop Recording";
+      }
+
       window.onload = function () {
         const prompts = [
           "Talk about your favorite childhood memory.",
@@ -109,9 +157,6 @@
         const selectedPrompt = prompts[randomIndex];
 
         document.getElementById("randomPrompt").textContent = selectedPrompt;
-        let mediaRecorder;
-        let audioChunks = [];
-        let audioBlob;
 
         document
           .getElementById("recordButton")
@@ -120,25 +165,19 @@
               typeof mediaRecorder === "undefined" ||
               mediaRecorder.state === "inactive"
             ) {
-              navigator.mediaDevices
-                .getUserMedia({ audio: true })
-                .then((stream) => {
-                  mediaRecorder = new MediaRecorder(stream);
-                  mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                  };
-
-                  mediaRecorder.onstop = () => {
-                    audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-                    audioChunks = []; // Clear chunks for next recording
-                  };
-
-                  mediaRecorder.start();
-                  this.textContent = "Stop Recording";
-                })
-                .catch((error) => {
-                  console.error("Error accessing the microphone.", error);
-                });
+              if (!stream) {
+                navigator.mediaDevices
+                  .getUserMedia({ audio: true })
+                  .then((str) => {
+                    stream = str;
+                    initiateRecording(stream);
+                  })
+                  .catch((error) => {
+                    console.error("Error accessing the microphone.", error);
+                  });
+              } else {
+                initiateRecording(stream);
+              }
             } else if (mediaRecorder.state === "recording") {
               mediaRecorder.stop();
               this.textContent = "Start Recording";
