@@ -4,71 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>iPhone Lock Screen Mimic for iPhone 11</title>
-    <style>
-      body,
-      html {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        font-family: "Arial", sans-serif;
-      }
-
-      .lock-screen {
-        background-image: url("wallpaper2.jpg");
-        background-size: cover;
-        background-position: center;
-        height: 1792px; /* iPhone 11 height */
-        width: 828px; /* iPhone 11 width */
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        margin: auto; /* Center the lock screen on larger screens */
-      }
-
-      .time {
-        font-size: 60px;
-        color: white;
-        margin-bottom: 10px;
-      }
-      #transcribedText {
-        font-size: 24px;
-        color: white;
-        background-color: rgba(
-          0,
-          0,
-          0,
-          0.7
-        ); /* semi-transparent background for better readability */
-        padding: 15px;
-        border-radius: 10px;
-        margin-top: 20px;
-        max-width: 90%; /* prevent overflow */
-        text-align: center;
-      }
-
-      .date {
-        font-size: 20px;
-        color: white;
-        margin-bottom: 30px;
-      }
-
-      .prompt {
-        font-size: 30px;
-        color: white;
-        text-align: center;
-        padding: 20px;
-        border-radius: 5px;
-        background-color: rgba(
-          0,
-          0,
-          0,
-          0.4
-        ); /* semi-transparent background for better readability */
-        #mic {
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div class="lock-screen">
@@ -116,30 +52,71 @@
       recognition.lang = "en-US";
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
+
       recognition.onresult = function (event) {
         let transcript = event.results[0][0].transcript;
-        console.log(transcript);
+        console.log(transcript); // This can be removed later, it's just for debugging
         document.getElementById("transcribedText").textContent = transcript;
+      };
+
+      recognition.onerror = function (event) {
+        console.error("Recognition error:", event.error);
       };
 
       let stream;
       let mediaRecorder;
       let audioChunks = [];
-      let audioBlob;
 
       function initiateRecording(str) {
         mediaRecorder = new MediaRecorder(str);
         mediaRecorder.ondataavailable = (event) => {
           audioChunks.push(event.data);
         };
-        mediaRecorder.onstop = () => {
-          audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
           audioChunks = [];
+          const transcript = await sendToGCP(audioBlob);
+          document.getElementById("transcribedText").textContent = transcript;
           str.getTracks().forEach((track) => track.stop());
-          recognition.start();
         };
+
         mediaRecorder.start();
         document.getElementById("recordButton").textContent = "Stop Recording";
+      }
+
+      async function sendToGCP(blob) {
+        const buffer = await blob.arrayBuffer();
+        const audioBytes = Array.from(new Uint8Array(buffer))
+          .map((byte) => {
+            return ("0" + (byte & 0xff).toString(16)).slice(-2);
+          })
+          .join("");
+
+        const audio = {
+          content: audioBytes,
+        };
+
+        const request = {
+          audio: audio,
+          config: {
+            encoding: "LINEAR16",
+            sampleRateHertz: 16000,
+            languageCode: "en-US",
+            enableAutomaticPunctuation: true,
+          },
+        };
+
+        const response = await fetch("/transcribe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(request),
+        });
+
+        const data = await response.json();
+        return data.transcript;
       }
 
       window.onload = function () {
@@ -155,7 +132,6 @@
 
         const randomIndex = Math.floor(Math.random() * prompts.length);
         const selectedPrompt = prompts[randomIndex];
-
         document.getElementById("randomPrompt").textContent = selectedPrompt;
 
         document
@@ -180,6 +156,7 @@
               }
             } else if (mediaRecorder.state === "recording") {
               mediaRecorder.stop();
+              recognition.stop();
               this.textContent = "Start Recording";
             }
           });

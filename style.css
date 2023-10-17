@@ -1,0 +1,60 @@
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: "Arial", sans-serif;
+}
+
+.lock-screen {
+  background-image: url("wallpaper2.jpg");
+  background-size: cover;
+  background-position: center;
+  height: 1792px; /* iPhone 11 height */
+  width: 828px; /* iPhone 11 width */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: auto; /* Center the lock screen on larger screens */
+}
+
+.time {
+  font-size: 60px;
+  color: white;
+  margin-bottom: 10px;
+}
+#transcribedText {
+  font-size: 24px;
+  color: white;
+  background-color: rgba(
+    0,
+    0,
+    0,
+    0.7
+  ); /* semi-transparent background for better readability */
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 20px;
+  max-width: 90%; /* prevent overflow */
+  text-align: center;
+}
+
+.date {
+  font-size: 20px;
+  color: white;
+  margin-bottom: 30px;
+}
+
+.prompt {
+  font-size: 30px;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  border-radius: 5px;
+  background-color: rgba(
+    0,
+    0,
+    0,
+    0.4
+  ); /* semi-transparent background for better readability */
+}
