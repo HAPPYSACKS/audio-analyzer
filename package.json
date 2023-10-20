@@ -1,0 +1,24 @@
+{
+  "name": "audio-analyzer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HAPPYSACKS/audio-analyzer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/HAPPYSACKS/audio-analyzer/issues"
+  },
+  "homepage": "https://github.com/HAPPYSACKS/audio-analyzer#readme",
+  "dependencies": {
+    "@google-cloud/speech": "^6.0.2",
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2"
+  }
+}
