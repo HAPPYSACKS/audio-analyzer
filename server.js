@@ -20,27 +20,37 @@ app.post("/transcribe", async (req, res) => {
   const audio = req.body.audio;
   const config = req.body.config;
 
+  console.log(`recieved request: ${req}`);
+
   try {
     const [response] = await client.recognize({
       audio: audio,
       config: config,
     });
-
+    console.log(response);
     if (response && response.results && response.results.length > 0) {
-        const transcriptWithSpeakers = response.results.map((result) => {
-          if (result.alternatives && result.alternatives[0] && result.alternatives[0].words) {
-            return result.alternatives[0].words.map(word => `Speaker ${word.speakerTag}: ${word.word}`).join(' ');
+      const transcriptWithSpeakers = response.results
+        .map((result) => {
+          if (
+            result.alternatives &&
+            result.alternatives[0] &&
+            result.alternatives[0].words
+          ) {
+            return result.alternatives[0].words
+              .map((word) => `Speaker ${word.speakerTag}: ${word.word}`)
+              .join(" ");
           }
           return result.alternatives[0].transcript;
-        }).join("\n");
-      
-        res.json({ transcript: transcriptWithSpeakers });
-      } else {
-        res.json({ transcript: "" });
-      }
-      
+        })
+        .join("\n");
+
+      res.json({ transcript: transcriptWithSpeakers });
+    } else {
+      res.json({ transcript: "" });
+    }
   } catch (error) {
-    console.error("Error processing speech:", error);
+    console.error("Error processing speech:", error.message, error);
+
     res.status(500).send("Error processing speech.");
   }
 });

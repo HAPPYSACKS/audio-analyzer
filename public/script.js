@@ -18,22 +18,79 @@ let stream;
 let mediaRecorder;
 let audioChunks = [];
 
+async function getSampleRateFromBlob(audioBlob) {
+  return new Promise(async (resolve, reject) => {
+    const audioContext = new (window.AudioContext ||
+      window.webkitAudioContext)();
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    audioContext.decodeAudioData(
+      arrayBuffer,
+      function (buffer) {
+        resolve(buffer.sampleRate);
+      },
+      function (error) {
+        reject(new Error("Error decoding audio data: " + error.err));
+      }
+    );
+  });
+}
+
+function downloadAudio(blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.style.display = "none";
+  a.href = url;
+  a.download = "recorded_audio.webm"; // You can change the name here
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }, 100);
+}
+
 function initiateRecording(str) {
   mediaRecorder = new MediaRecorder(str);
   mediaRecorder.ondataavailable = (event) => {
     audioChunks.push(event.data);
   };
-
   mediaRecorder.onstop = async () => {
     const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
     audioChunks = [];
+
+    // Extract and log the sample rate
+    try {
+      const sampleRate = await getSampleRateFromBlob(audioBlob);
+      console.log(`Sample rate: ${sampleRate} Hz`);
+    } catch (error) {
+      console.error("Failed to get sample rate:", error);
+    }
+
+    downloadAudio(audioBlob);
     const transcript = await sendToGCP(audioBlob);
     document.getElementById("transcribedText").textContent = transcript;
+    console.log(`transcript: ${transcript}`);
     str.getTracks().forEach((track) => track.stop());
   };
 
   mediaRecorder.start();
   document.getElementById("recordButton").textContent = "Stop Recording";
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+    mediaRecorder.stop();
+  }
+
+  if (recognition && recognition.state === "recording") {
+    recognition.stop();
+  }
+
+  if (stream) {
+    let tracks = stream.getTracks();
+    tracks.forEach((track) => track.stop());
+    stream = null; // Clear the stream variable
+  }
 }
 
 async function sendToGCP(blob) {
@@ -51,14 +108,14 @@ async function sendToGCP(blob) {
   const request = {
     audio: audio,
     config: {
-      encoding: "LINEAR16",
-      sampleRateHertz: 16000,
+      encoding: "OGG_OPUS",
+      sampleRateHertz: 48000,
       languageCode: "en-US",
       enableAutomaticPunctuation: true,
       enableSpeakerDiarization: true,
       minSpeakerCount: 1,
       maxSpeakerCount: 2,
-      model: "phone_call",
+      model: "default",
     },
   };
 
@@ -69,6 +126,10 @@ async function sendToGCP(blob) {
     },
     body: JSON.stringify(request),
   });
+
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
 
   const data = await response.json();
   return data.transcript;
@@ -110,8 +171,7 @@ window.onload = function () {
           initiateRecording(stream);
         }
       } else if (mediaRecorder.state === "recording") {
-        mediaRecorder.stop();
-        recognition.stop();
+        stopRecording();
         this.textContent = "Start Recording";
       }
     });
