@@ -9,7 +9,7 @@ const client = new speech.SpeechClient({
     "/Users/ericmao/downloads/centered-oasis-402304-691ce216fc05.json",
 });
 
-const fileName = "/Users/ericmao/Downloads/output_audio (10).opus";
+const fileName = "./output_audio.ogg";
 
 const config = {
   encoding: "OGG_OPUS",

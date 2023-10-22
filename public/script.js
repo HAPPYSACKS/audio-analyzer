@@ -67,7 +67,7 @@ function initiateRecording(str) {
       console.error("Failed to get sample rate:", error);
     }
 
-    downloadAudio(audioBlob);
+    // downloadAudio(audioBlob);
     const transcript = await sendToGCP(audioBlob);
     document.getElementById("transcribedText").textContent = transcript;
     console.log(`transcript: ${transcript}`);
