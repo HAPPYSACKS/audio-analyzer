@@ -20,14 +20,13 @@ app.post("/transcribe", async (req, res) => {
   const audio = req.body.audio;
   const config = req.body.config;
 
-  console.log(`recieved request: ${req}`);
+  console.log(audio);
 
   try {
     const [response] = await client.recognize({
       audio: audio,
       config: config,
     });
-    console.log(response);
     if (response && response.results && response.results.length > 0) {
       const transcriptWithSpeakers = response.results
         .map((result) => {

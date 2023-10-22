@@ -1,4 +1,4 @@
-const recognition = new (window.SpeechRecognition ||
+let recognition = new (window.SpeechRecognition ||
   window.webkitSpeechRecognition)();
 recognition.lang = "en-US";
 recognition.interimResults = false;
@@ -6,7 +6,7 @@ recognition.maxAlternatives = 1;
 
 recognition.onresult = function (event) {
   let transcript = event.results[0][0].transcript;
-  console.log(transcript); // This can be removed later, it's just for debugging
+  console.log(transcript);
   document.getElementById("transcribedText").textContent = transcript;
 };
 
@@ -40,7 +40,7 @@ function downloadAudio(blob) {
   const a = document.createElement("a");
   a.style.display = "none";
   a.href = url;
-  a.download = "recorded_audio.webm"; // You can change the name here
+  a.download = "recorded_audio.webm";
   document.body.appendChild(a);
   a.click();
   setTimeout(() => {
@@ -50,15 +50,16 @@ function downloadAudio(blob) {
 }
 
 function initiateRecording(str) {
-  mediaRecorder = new MediaRecorder(str);
+  mediaRecorder = new MediaRecorder(str, {
+    mimeType: "audio/webm;codecs=opus",
+  });
   mediaRecorder.ondataavailable = (event) => {
     audioChunks.push(event.data);
   };
   mediaRecorder.onstop = async () => {
-    const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+    const audioBlob = new Blob(audioChunks, { type: "audio/webm;codecs=opus" });
     audioChunks = [];
 
-    // Extract and log the sample rate
     try {
       const sampleRate = await getSampleRateFromBlob(audioBlob);
       console.log(`Sample rate: ${sampleRate} Hz`);
@@ -71,6 +72,7 @@ function initiateRecording(str) {
     document.getElementById("transcribedText").textContent = transcript;
     console.log(`transcript: ${transcript}`);
     str.getTracks().forEach((track) => track.stop());
+    stream = null;
   };
 
   mediaRecorder.start();
@@ -89,20 +91,16 @@ function stopRecording() {
   if (stream) {
     let tracks = stream.getTracks();
     tracks.forEach((track) => track.stop());
-    stream = null; // Clear the stream variable
+    stream = null;
   }
 }
 
 async function sendToGCP(blob) {
   const buffer = await blob.arrayBuffer();
-  const audioBytes = Array.from(new Uint8Array(buffer))
-    .map((byte) => {
-      return ("0" + (byte & 0xff).toString(16)).slice(-2);
-    })
-    .join("");
-
+  const audioBytes = new Uint8Array(buffer);
+  const base64String = btoa(String.fromCharCode(...audioBytes));
   const audio = {
-    content: audioBytes,
+    content: base64String,
   };
 
   const request = {
