@@ -71,6 +71,10 @@ function initiateRecording(str) {
     const transcript = await sendToGCP(audioBlob);
     document.getElementById("transcribedText").textContent = transcript;
     console.log(`transcript: ${transcript}`);
+    const topic = selectedPrompt; // replace with the topic you're looking for
+    const topicResponse = await checkTopicWithServer(transcript, topic);
+    console.log(`Topic Response: ${topicResponse}`);
+
     str.getTracks().forEach((track) => track.stop());
     stream = null;
   };
@@ -130,6 +134,23 @@ async function sendToGCP(blob) {
 
   const data = await response.json();
   return data.transcript;
+}
+
+async function checkTopicWithServer(transcript, topic) {
+  const response = await fetch("/check-topic", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ transcript, topic }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Server response was not ok");
+  }
+
+  const data = await response.json();
+  return data.topicResponse;
 }
 
 window.onload = function () {

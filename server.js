@@ -4,6 +4,13 @@ const speech = require("@google-cloud/speech");
 const path = require("path");
 const fs = require("fs");
 const exec = require("child_process").exec;
+const { Configuration, OpenAIApi } = require("openai");
+
+const openai = new OpenAIApi(
+  new Configuration({
+    apiKey: "YOUR_OPENAI_API_KEY",
+  })
+);
 
 const app = express();
 const port = 3000;
@@ -71,6 +78,37 @@ app.post("/transcribe", async (req, res) => {
       res.status(500).send("Error processing speech.");
     }
   });
+});
+
+app.post("/check-topic", async (req, res) => {
+  const { transcript, topic } = req.body;
+
+  try {
+    const requestBody = {
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Determine if the given text discusses the topic of '" +
+            topic +
+            "'.",
+        },
+        {
+          role: "user",
+          content: transcript,
+        },
+      ],
+    };
+
+    const response = await openai.complete(requestBody);
+    const chatGPTResponse = response.data.messages[2].content;
+
+    res.json({ topicResponse: chatGPTResponse });
+  } catch (error) {
+    console.error("Error sending data to OpenAI:", error);
+    res.status(500).send("Error querying OpenAI.");
+  }
 });
 
 app.listen(port, () => {
