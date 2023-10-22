@@ -36,37 +36,32 @@ app.post("/transcribe", async (req, res) => {
   const audio = req.body.audio;
   const config = req.body.config;
 
-  const base64String = audio.content; // Your base64 string here
+  const base64String = audio.content;
   const buffer = Buffer.from(base64String, "base64");
 
   fs.writeFileSync("output_audio.webm", buffer);
 
   convertWebMToOgg("output_audio.webm", "output_audio.ogg", async () => {
     try {
-      console.log("conversion complete!");
+      console.log("Conversion complete!");
+
+      const content = fs.readFileSync("output_audio.ogg").toString("base64");
+
       const [response] = await client.recognize({
         audio: {
-          content: fs.readFileSync("output_audio.ogg").toString("base64"),
+          content: content,
         },
         config: config,
       });
+
       if (response && response.results && response.results.length > 0) {
-        const transcriptWithSpeakers = response.results
-          .map((result) => {
-            if (
-              result.alternatives &&
-              result.alternatives[0] &&
-              result.alternatives[0].words
-            ) {
-              return result.alternatives[0].words
-                .map((word) => `Speaker ${word.speakerTag}: ${word.word}`)
-                .join(" ");
-            }
-            return result.alternatives[0].transcript;
-          })
+        const transcript = response.results
+          .map((result) => result.alternatives[0].transcript)
           .join("\n");
 
-        res.json({ transcript: transcriptWithSpeakers });
+        console.log(`Transcription: ${transcript}`);
+
+        res.json({ transcript: transcript });
       } else {
         res.json({ transcript: "" });
       }

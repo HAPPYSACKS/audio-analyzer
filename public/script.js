@@ -109,7 +109,6 @@ async function sendToGCP(blob) {
       encoding: "OGG_OPUS",
       sampleRateHertz: 48000,
       languageCode: "en-US",
-      enableAutomaticPunctuation: true,
       enableSpeakerDiarization: true,
       minSpeakerCount: 1,
       maxSpeakerCount: 2,
