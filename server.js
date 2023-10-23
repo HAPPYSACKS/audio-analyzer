@@ -13,9 +13,7 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const app = express();
 const port = 3000;
 
-const googleCloudCredentials = JSON.parse(
-  process.env.GOOGLE_CLOUD_KEY_STRINGIFIED
-);
+const googleCloudCredentials = JSON.parse(process.env.GOOGLE_CLOUD_KEY);
 
 const client = new speech.SpeechClient({
   credentials: googleCloudCredentials,
