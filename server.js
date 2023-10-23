@@ -13,8 +13,12 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const app = express();
 const port = 3000;
 
+const googleCloudCredentials = JSON.parse(
+  process.env.GOOGLE_CLOUD_KEY_STRINGIFIED
+);
+
 const client = new speech.SpeechClient({
-  keyFilename: process.env.GOOGLE_CLOUD_KEY,
+  credentials: googleCloudCredentials,
 });
 
 // Serve static files from the 'public' directory
