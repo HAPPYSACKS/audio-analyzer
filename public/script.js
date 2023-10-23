@@ -155,7 +155,7 @@ async function checkTopicWithServer(transcript, topic) {
     // Unlock the lock screen by changing the background to the home screen
     document.querySelector(".lock-screen").classList.add("unlocked");
     document.getElementById("transcribedText").textContent = "Unlocked!";
-  } else if (data.topicResponse === "no") {
+  } else if (data.topicResponse.message.content === "no") {
     document.getElementById("transcribedText").textContent = "Access Denied!";
   }
 
