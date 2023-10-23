@@ -151,7 +151,7 @@ async function checkTopicWithServer(transcript, topic) {
 
   const data = await response.json();
 
-  if (data.topicResponse === "yes") {
+  if (data.topicResponse.message.content === "yes") {
     // Unlock the lock screen by changing the background to the home screen
     document.querySelector(".lock-screen").classList.add("unlocked");
     document.getElementById("transcribedText").textContent = "Unlocked!";
