@@ -9,8 +9,8 @@ html {
   background-image: url("wallpaper2.jpg");
   background-size: cover;
   background-position: center;
-  height: 1792px; /* iPhone 11 height */
-  width: 828px; /* iPhone 11 width */
+  height: 844px; /* iPhone 11 height */
+  width: 390px; /* iPhone 11 width */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -21,6 +21,8 @@ html {
 
 .lock-screen.unlocked {
   background: url("unlocked.jpg");
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 .unlocked {
@@ -28,10 +30,65 @@ html {
 }
 
 .time {
-  font-size: 60px;
+  font-size: 70px;
   color: white;
   margin-bottom: 10px;
 }
+#lockIcon {
+  color: white;
+  position: absolute;
+  top: 30vh;
+}
+
+#mic {
+  position: absolute;
+  top: 105vh;
+  transition: transform 0.3s ease; /* Smooth animation for hover effect */
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  10% {
+    transform: translateX(-10px);
+  }
+  20% {
+    transform: translateX(10px);
+  }
+  30% {
+    transform: translateX(-10px);
+  }
+  40% {
+    transform: translateX(10px);
+  }
+  50% {
+    transform: translateX(-10px);
+  }
+  60% {
+    transform: translateX(10px);
+  }
+  70% {
+    transform: translateX(-10px);
+  }
+  80% {
+    transform: translateX(10px);
+  }
+  90% {
+    transform: translateX(-10px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.shake-icon {
+  animation: shake 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
 #transcribedText {
   font-size: 24px;
   color: white;
@@ -54,6 +111,20 @@ html {
   margin-bottom: 30px;
 }
 
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.bobbing {
+  animation: bob 1s infinite; /* 1 second duration, repeats infinitely */
+}
+
 .prompt {
   font-size: 30px;
   color: white;
@@ -66,4 +137,25 @@ html {
     0,
     0.4
   ); /* semi-transparent background for better readability */
+}
+
+.spinner {
+  border: 10px solid rgba(255, 255, 255, 0.3); /* Light white */
+  border-radius: 50%;
+  border-top: 10px solid #ffffff; /* White */
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  display: none;
+  position: absolute;
+  top: 105vh;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

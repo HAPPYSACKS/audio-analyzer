@@ -5,18 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>iPhone Lock Screen Mimic for iPhone 11</title>
     <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
   </head>
   <body>
     <div class="lock-screen">
+      <i class="fas fa-lock" id="lockIcon"></i>
       <div class="time">11:39</div>
       <div class="date">Monday, September 12</div>
       <div class="prompt" id="randomPrompt"></div>
-      <button id="recordButton">Start Recording</button>
-      <!-- <svg
+      <div class="spinner" id="processingSpinner"></div>
+      <svg
         id="mic"
         fill="#ffffff"
-        height="200px"
-        width="200px"
+        height="25px"
+        width="25px"
         version="1.1"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 512 512"
@@ -41,7 +46,7 @@
             </g>
           </g>
         </g>
-      </svg> -->
+      </svg>
 
       <div id="transcribedText"></div>
     </div>
