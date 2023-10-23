@@ -16,6 +16,15 @@ html {
   justify-content: center;
   align-items: center;
   margin: auto; /* Center the lock screen on larger screens */
+  transition: background 1s ease-in-out;
+}
+
+.lock-screen.unlocked {
+  background: url("unlocked.jpg");
+}
+
+.unlocked {
+  background-image: url("homescreen.jpg"); /* Replace with the path to your home screen image */
 }
 
 .time {

@@ -4,20 +4,17 @@ const speech = require("@google-cloud/speech");
 const path = require("path");
 const fs = require("fs");
 const exec = require("child_process").exec;
-const { Configuration, OpenAIApi } = require("openai");
+const axios = require("axios");
+require("dotenv").config();
 
-const openai = new OpenAIApi(
-  new Configuration({
-    apiKey: "YOUR_OPENAI_API_KEY",
-  })
-);
+const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 const app = express();
 const port = 3000;
 
 const client = new speech.SpeechClient({
-  keyFilename:
-    "/Users/ericmao/downloads/centered-oasis-402304-691ce216fc05.json",
+  keyFilename: process.env.GOOGLE_CLOUD_KEY,
 });
 
 // Serve static files from the 'public' directory
@@ -37,6 +34,42 @@ function convertWebMToOgg(inputPath, outputPath, callback) {
     console.log(`stderr: ${stderr}`);
     callback();
   });
+}
+
+async function getOpenAIResponse(topic, transcript) {
+  console.log("OPENAI API Key:", process.env.OPENAI_API_KEY);
+
+  try {
+    const response = await axios.post(
+      OPENAI_API_URL,
+      {
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content:
+              "Determine if the given text discusses the topic of '" +
+              topic +
+              "'. Respond with only `yes` or `no`",
+          },
+          {
+            role: "user",
+            content: transcript,
+          },
+        ],
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error calling OpenAI API:", error);
+    throw error;
+  }
 }
 
 app.post("/transcribe", async (req, res) => {
@@ -84,25 +117,8 @@ app.post("/check-topic", async (req, res) => {
   const { transcript, topic } = req.body;
 
   try {
-    const requestBody = {
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content:
-            "Determine if the given text discusses the topic of '" +
-            topic +
-            "'.",
-        },
-        {
-          role: "user",
-          content: transcript,
-        },
-      ],
-    };
-
-    const response = await openai.complete(requestBody);
-    const chatGPTResponse = response.data.messages[2].content;
+    const response = await getOpenAIResponse(topic, transcript);
+    const chatGPTResponse = response.choices[0];
 
     res.json({ topicResponse: chatGPTResponse });
   } catch (error) {

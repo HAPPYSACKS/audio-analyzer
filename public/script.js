@@ -49,7 +49,7 @@ function downloadAudio(blob) {
   }, 100);
 }
 
-function initiateRecording(str) {
+function initiateRecording(str, selectedPrompt) {
   mediaRecorder = new MediaRecorder(str, {
     mimeType: "audio/webm;codecs=opus",
   });
@@ -150,6 +150,15 @@ async function checkTopicWithServer(transcript, topic) {
   }
 
   const data = await response.json();
+
+  if (data.topicResponse === "yes") {
+    // Unlock the lock screen by changing the background to the home screen
+    document.querySelector(".lock-screen").classList.add("unlocked");
+    document.getElementById("transcribedText").textContent = "Unlocked!";
+  } else if (data.topicResponse === "no") {
+    document.getElementById("transcribedText").textContent = "Access Denied!";
+  }
+
   return data.topicResponse;
 }
 
@@ -180,13 +189,13 @@ window.onload = function () {
             .getUserMedia({ audio: true })
             .then((str) => {
               stream = str;
-              initiateRecording(stream);
+              initiateRecording(stream, selectedPrompt);
             })
             .catch((error) => {
               console.error("Error accessing the microphone.", error);
             });
         } else {
-          initiateRecording(stream);
+          initiateRecording(stream, selectedPrompt);
         }
       } else if (mediaRecorder.state === "recording") {
         stopRecording();
